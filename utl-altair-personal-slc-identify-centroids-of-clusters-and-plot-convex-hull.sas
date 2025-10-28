@@ -1,0 +1,311 @@
+%stop_submission;
+
+RE altair personal slc identify centroids of clusters and plot convex hull
+
+Too long to post here, see github
+
+github
+https://github.com/rogerjdeangelis/utl-altair-personal-slc-identify-centroids-of-clusters-and-plot-convex-hull
+
+Hi Res Convex Hull
+https://github.com/rogerjdeangelis/utl-altair-personal-slc-identify-centroids-of-clusters-and-plot-convex-hull/blob/main/covexhull.pdf
+
+community.altair
+https://community.altair.com/discussion/53560
+https://community.altair.com/discussion/53560/distance-to-cluster-centre-for-every-data-point?tab=accepted&utm_source=community-search&utm_medium=organic-search&utm_term=cluster
+
+/*               _     _
+ _ __  _ __ ___ | |__ | | ___ _ __ ___
+| `_ \| `__/ _ \| `_ \| |/ _ \ `_ ` _ \
+| |_) | | | (_) | |_) | |  __/ | | | | |
+| .__/|_|  \___/|_.__/|_|\___|_| |_| |_|
+|_|
+*/
+      0         25         50    X    75         100        125
+    --+----------+----------+----------+----------+----------+--
+  y |                                                          |
+    |                                                          |
+160 +                   1                                      + 160
+    |   CLUSTER 1     ."  " .                                  |
+    |   ---------   /1        1                                |
+    |              /   11   11 \                               |
+    |             / 1    1X1    .                              |
+    |            /1    1        "                              |
+    |            \  1  1 11 11   \                             |
+140 +             \1             /1                            + 140
+    |               \-----------1                              |
+    |                                                          |
+    |                                      .2 .                |
+    |                                  . "      " 2.           |
+    |               CLUSTER 2      . "               " 2       |
+    |               ---------  2 "               2      \      |
+120 +                          \                  2      \     + 120
+    |                           \                2    2   2    |
+    |                            \         2      2      2     |
+    |                             \             X       /      |
+  Y |  X MARKS CENTROIDS           \                   2       | Y
+    |                               \                ."        |
+    |                                \            . "          |
+100 +                                 \        . "             + 100
+    |                                  2    .2"                |
+    |                                   \2."                   |
+    |                                                          |
+    |      3   CLUSTER 3                                       |
+    |     .  \ ---------                                       |
+    |         .                                                |
+ 80 +     "    \                                               +  80
+    |     3     3.                     CENTROIDS               |
+    |     .  3  3 ".                                           |
+    |    ."       3 3       CLUSTER        X        Y          |
+    |    3  3X      |                                          |
+    |   .     3     |             1 20.15000  64.9500          |
+    |   3           |             2 43.91304 146.0435          |
+ 60 +   | 3   3   3 3             3 98.17647 114.8824          +  60
+    |   |        3  |                                          |
+    |   3         3 |                                          |
+    |    \         .3                                          |
+    |     " 3---- "                                            |
+    |                                                          |
+    |                                                          |
+ 40 +                                                          +  40
+    |                                                          |
+    --+----------+----------+----------+----------+----------+--
+      0         25         50   X     75         100        125
+
+/*                   _
+(_)_ __  _ __  _   _| |_
+| | `_ \| `_ \| | | | __|
+| | | | | |_) | |_| | |_
+|_|_| |_| .__/ \__,_|\__|
+        |_|
+*/
+
+SD1.HAVE D:/SD1/HAVE.SAS7BDAT
+
+Obs     x     y
+
+ 1      4     53
+ 2      5     63
+ 3     10     59
+...
+...
+58    111    126
+59    115    117
+60    117    115
+
+
+options validvarname=v7;
+libname sd1 "d:/sd1";
+data sd1.have;
+  input x y @@;
+cards4;
+4 53 5 63 10 59 9 77 13 49 13 69 12 88 15 75 18 61 19 65 22
+74 27 72 28 76 24 58 27 55 28 60 30 52 31 60 32 61 36 72 28
+147 32 149 35 153 33 154 38 151 41 150 38 145 38 143 32 143
+34 141 44 156 44 149 44 143 46 142 47 149 49 152 50 142 53
+144 52 152 55 155 54 124 60 136 63 139 86 132 85 115 85 96
+78 94 74 96 97 122 98 116 98 124 99 119 99 128 101 115 108
+111 110 111 108 116 111 126 115 117 117 115
+;;;;
+run;quit;
+
+/*--- create ascii plot ---*/
+
+options ls=64 ps=64;
+proc plot data=sd1.have;
+ plot y*x/box;
+run;quit;
+
+/*
+ _ __  _ __ ___   ___ ___  ___ ___
+| `_ \| `__/ _ \ / __/ _ \/ __/ __|
+| |_) | | | (_) | (_|  __/\__ \__ \
+| .__/|_|  \___/ \___\___||___/___/
+|_|
+*/
+
+&_init_;
+
+%utlfkil(d:/pdf/covexhull.pdf);
+
+proc datasets lib=work nolist nodetails;
+ delete centroids;
+run;quit;
+
+options set=RHOME "D:\r451";
+proc r;
+
+export data=sd1.have r=data;
+submit;
+library(cluster);
+
+# Perform k-means clustering
+kmeans_result <- kmeans(data, centers = 3)
+
+# Extract cluster assignments
+clusters <- kmeans_result$cluster
+
+# Compute centroids manually
+centroids <- aggregate(data, by = list(cluster = clusters), FUN = mean)
+
+# Show centroids
+print(centroids)
+Rusp_HC = hclust(dist(ruspini));
+Cluster3 = cutree(Rusp_HC, 3);
+pdf("d:/pdf/covexhull.pdf");
+plot(ruspini, pch=20, col=rainbow(3)[Cluster3]);
+for(i in 1:3) {
+    ConvexHull = chull(ruspini[Cluster3 == i, ]);
+    polygon(ruspini[Cluster3 == i, ][ConvexHull,],
+        border=rainbow(3)[i], col=rainbow(3, alpha=0.05)[i])
+};
+');
+endsubmit;
+import data=centroids r=centroids;
+run;quit;
+
+proc print data=centroids;
+run;quit;
+
+/*           _               _
+  ___  _   _| |_ _ __  _   _| |_
+ / _ \| | | | __| `_ \| | | | __|
+| (_) | |_| | |_| |_) | |_| | |_
+ \___/ \__,_|\__| .__/ \__,_|\__|
+                |_|
+*/
+
+Altair SLC
+
+  cluster        x        y
+1       1 20.15000  64.9500
+2       2 43.91304 146.0435
+3       3 98.17647 114.8824
+
+HiRes plot convexhull
+d:/pdf/covexhull.pdf
+
+/*
+| | ___   __ _
+| |/ _ \ / _` |
+| | (_) | (_| |
+|_|\___/ \__, |
+         |___/
+*/
+
+661       ODS _ALL_ CLOSE;
+662       ODS LISTING;
+663       FILENAME WBGSF 'd:\wpswrk\_TD2820/listing_images';
+664       OPTIONS DEVICE=GIF;
+665       GOPTIONS GSFNAME=WBGSF;
+666       &_init_;
+667
+668       %utlfkil(d:/pdf/covexhull.pdf);
+669
+670       proc datasets lib=work nolist nodetails;
+671        delete centroids;
+672       run;quit;
+NOTE: Deleting "WORK.CENTROIDS" (memtype="DATA")
+NOTE: Procedure datasets step took :
+      real time : 0.001
+      cpu time  : 0.000
+
+
+673
+674       options set=RHOME "D:\r451";
+675       proc r;
+NOTE: Using R version 4.5.1 (2025-06-13 ucrt) from d:\r451
+676
+677       export data=sd1.have r=data;
+NOTE: Creating R data frame 'data' from data set 'SD1.have'
+
+678       submit;
+679       library(cluster);
+680
+681       # Perform k-means clustering
+682       kmeans_result <- kmeans(data, centers = 3)
+683
+684       # Extract cluster assignments
+685       clusters <- kmeans_result$cluster
+686
+687       # Compute centroids manually
+688       centroids <- aggregate(data, by = list(cluster = clusters), FUN = mean)
+689
+690       # Show centroids
+691       print(centroids)
+692       Rusp_HC = hclust(dist(ruspini));
+693       Cluster3 = cutree(Rusp_HC, 3);
+694       pdf("d:/pdf/covexhull.pdf");
+695       plot(ruspini, pch=20, col=rainbow(3)[Cluster3]);
+696       for(i in 1:3) {
+697           ConvexHull = chull(ruspini[Cluster3 == i, ]);
+698           polygon(ruspini[Cluster3 == i, ][ConvexHull,],
+699               border=rainbow(3)[i], col=rainbow(3, alpha=0.05)[i])
+700       };
+701       ');
+702       endsubmit;
+
+NOTE: Submitting statements to R:
+
+> library(cluster);
+>
+> # Perform k-means clustering
+> kmeans_result <- kmeans(data, centers = 3)
+>
+> # Extract cluster assignments
+> clusters <- kmeans_result$cluster
+>
+> # Compute centroids manually
+> centroids <- aggregate(data, by = list(cluster = clusters), FUN = mean)
+>
+> # Show centroids
+> print(centroids)
+> Rusp_HC = hclust(dist(ruspini));
+> Cluster3 = cutree(Rusp_HC, 3);
+Error in pdf("d:/pdf/covexhull.pdf") :
+  cannot open file 'd:/pdf/covexhull.pdf'
+> pdf("d:/pdf/covexhull.pdf");
+> plot(ruspini, pch=20, col=rainbow(3)[Cluster3]);
+> for(i in 1:3) {
++     ConvexHull = chull(ruspini[Cluster3 == i, ]);
++     polygon(ruspini[Cluster3 == i, ][ConvexHull,],
++         border=rainbow(3)[i], col=rainbow(3, alpha=0.05)[i])
++ };
+
+NOTE: Processing of R statements complete
+NOTE: Successfully written image d:\wpswrk\_TD2820\ODS LISTING images\I0000002.jpeg
+
+> ');
+703       import data=centroids r=centroids;
+NOTE: Creating data set 'WORK.centroids' from R data frame 'centroids'
+NOTE: Column names modified during import of 'centroids'
+NOTE: Data set "WORK.centroids" has 3 observation(s) and 3 variable(s)
+
+704       run;quit;
+NOTE: Procedure r step took :
+      real time : 0.727
+      cpu time  : 0.000
+
+
+705
+706       proc print data=centroids;
+707       run;quit;
+NOTE: 3 observations were read from "WORK.centroids"
+NOTE: Procedure print step took :
+      real time : 0.028
+      cpu time  : 0.000
+
+
+708
+709
+710       quit; run;
+711       ODS _ALL_ CLOSE;
+712       FILENAME WBGSF CLEAR;
+
+/*              _
+  ___ _ __   __| |
+ / _ \ `_ \ / _` |
+|  __/ | | | (_| |
+ \___|_| |_|\__,_|
+
+*/
