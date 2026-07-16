@@ -1,0 +1,7 @@
+{
+  "bundle": "t001_slc_centroids_convexhull",
+  "source_file": "utl-altair-personal-slc-identify-centroids-of-clusters-and-plot-convex-hull.sas",
+  "source_blob_sha": "1e3db922c76469fb66cc3783c4fe271d4950116e",
+  "source_commit": "a1ba0be7c3f19057479de5f5e8bcb96b412797fb",
+  "notes": "Source file is a documentation/log-transcript writeup (%stop_submission; guard at top, ASCII-art banners, captured SAS+R log) rather than a standalone runnable script. Extracted the runnable kernel: the DATA step building the x/y point set (byte-identical inline cards4 data) and the PROC PLOT ASCII scatterplot call (byte-identical PROC PLOT statement). LIBNAME sd1 pointing at d:/sd1 (Windows path) was dropped in favor of a WORK dataset. The PROC R block (k-means clustering + convex hull via R's cluster/chull, RHOME=D:\\r451, output to d:/pdf/covexhull.pdf) was omitted -- it depends on an external R installation and hardcoded Windows paths, out of scope for this bundle. PROC PRINT of the R-derived centroids dataset was omitted for the same reason (its input only exists after the R step runs)."
+}
